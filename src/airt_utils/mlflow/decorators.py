@@ -20,7 +20,7 @@ def airt_run(
     timeout_seconds: Optional[int] = None,
     tags: Dict[str, str] = {},
     log_system_metrics: bool = True,
-    retry_attempts: int = 3,
+    retry_attempts: int = 1,
     retry_delay: float = 1.0,
     custom_metrics: Dict[str, Callable] = {},
 ):
