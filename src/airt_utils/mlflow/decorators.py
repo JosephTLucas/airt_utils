@@ -78,7 +78,7 @@ def airt_run(
                                     timeout=timeout_seconds
                                 ) if timeout_seconds else func(self_or_cls, **all_kwargs) if self_or_cls else func(**all_kwargs)
                         except asyncio.TimeoutError:
-                            result = None
+                            result = f"Timeout after {timeout_seconds} seconds."
                             raise AIRTMLflowError(f"Function {func.__name__} timed out after {timeout_seconds} seconds.")
                         finally:
                             if isinstance(result, dict):
