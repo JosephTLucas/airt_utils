@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "airt_utils"
-version = "0.1.4"
+version = "0.1.5"
 description = "Utilities for experiment-centric AI Red Teaming workflows"
 authors = ["Joe Lucas <joe@joetl.com>"]
 license = "MIT"
