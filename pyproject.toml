@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "airt_utils"
-version = "0.1.0"
+version = "0.1.1"
 description = "Utilities for experiment-centric AI Red Teaming workflows"
 authors = ["Joe Lucas <joe@joetl.com>"]
 license = "MIT"
@@ -24,6 +24,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 mlflow = "^2.15.0"
+requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.3.2"
