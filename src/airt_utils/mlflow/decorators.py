@@ -83,31 +83,32 @@ def airt_run(
                                         timeout=timeout_seconds
                                     ) if timeout_seconds else func(self_or_cls, **all_kwargs) if self_or_cls else func(**all_kwargs)
                             except asyncio.TimeoutError:
-                                logging.warning(f"Function {func.__name__} timed out after {timeout_seconds} seconds.")
-
-                            if isinstance(result, dict):
-                                mlflow.log_params(result)
-                            else:
-                                mlflow.log_metric('return_value', result if isinstance(result, (int, float)) else 0)
-
-                            for artifact in artifacts:
-                                artifact_path = all_kwargs.get(artifact, None) or Path(artifact)
-                                artifact_path = Path(str(artifact_path))
-                                
-                                if artifact_path.exists():
-                                    if artifact_path.is_file():
-                                        mlflow.log_artifact(str(artifact_path))
-                                    elif artifact_path.is_dir():
-                                        mlflow.log_artifacts(str(artifact_path))
+                                result = None
+                                raise AIRTMLflowError(f"Function {func.__name__} timed out after {timeout_seconds} seconds.")
+                            finally:
+                                if isinstance(result, dict):
+                                    mlflow.log_params(result)
                                 else:
-                                    logging.warning(f"Artifact {artifact_path} does not exist and will not be logged.")
+                                    mlflow.log_metric('return_value', result if isinstance(result, (int, float)) else 0)
 
-                            for metric_name, metric_func in custom_metrics.items():
-                                try:
-                                    metric_value = metric_func(result)
-                                    mlflow.log_metric(metric_name, metric_value)
-                                except Exception as e:
-                                    logging.error(f"Error computing custom metric {metric_name}: {str(e)}")
+                                for artifact in artifacts:
+                                    artifact_path = all_kwargs.get(artifact, None) or Path(artifact)
+                                    artifact_path = Path(str(artifact_path))
+                                    
+                                    if artifact_path.exists():
+                                        if artifact_path.is_file():
+                                            mlflow.log_artifact(str(artifact_path))
+                                        elif artifact_path.is_dir():
+                                            mlflow.log_artifacts(str(artifact_path))
+                                    else:
+                                        logging.warning(f"Artifact {artifact_path} does not exist and will not be logged.")
+
+                                for metric_name, metric_func in custom_metrics.items():
+                                    try:
+                                        metric_value = metric_func(result)
+                                        mlflow.log_metric(metric_name, metric_value)
+                                    except Exception as e:
+                                        logging.error(f"Error computing custom metric {metric_name}: {str(e)}")
 
                             return result
                     except Exception as e:
