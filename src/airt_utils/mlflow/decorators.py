@@ -45,6 +45,7 @@ def airt_run(
         @wraps(func)
         def wrapper(*args, **kwargs):
             async def run():
+                result = None
                 if tracking_uri:
                     mlflow.set_tracking_uri(uri=tracking_uri)
                 
@@ -81,11 +82,6 @@ def airt_run(
                             result = f"Timeout after {timeout_seconds} seconds."
                             raise AIRTMLflowError(f"Function {func.__name__} timed out after {timeout_seconds} seconds.")
                         finally:
-                            if isinstance(result, dict):
-                                mlflow.log_params(result)
-                            else:
-                                mlflow.log_metric('return_value', result if isinstance(result, (int, float)) else 0)
-
                             for artifact in artifacts:
                                 artifact_path = all_kwargs.get(artifact, None) or Path(artifact)
                                 artifact_path = Path(str(artifact_path))
@@ -97,13 +93,18 @@ def airt_run(
                                         mlflow.log_artifacts(str(artifact_path))
                                 else:
                                     logging.warning(f"Artifact {artifact_path} does not exist and will not be logged.")
-
-                            for metric_name, metric_func in custom_metrics.items():
-                                try:
-                                    metric_value = metric_func(result)
-                                    mlflow.log_metric(metric_name, metric_value)
-                                except Exception as e:
-                                    logging.error(f"Error computing custom metric {metric_name}: {str(e)}")
+                            if result is not None:
+                                if isinstance(result, dict):
+                                    mlflow.log_params(result)
+                                else:
+                                    mlflow.log_metric('return_value', result if isinstance(result, (int, float)) else 0)
+    
+                                for metric_name, metric_func in custom_metrics.items():
+                                    try:
+                                        metric_value = metric_func(result)
+                                        mlflow.log_metric(metric_name, metric_value)
+                                    except Exception as e:
+                                        logging.error(f"Error computing custom metric {metric_name}: {str(e)}")
 
                         return result
                 except Exception as e:
